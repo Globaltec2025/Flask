@@ -13,7 +13,7 @@
     </div>    
     <div id="container">
         <img src="{{ url_for('static', filename='imagenes/logo-globaltec.png') }}" alt="Logo Globaltec" class="header-image">
-        
+       
         <!-- Sección inicial de búsqueda -->
         <div id="searchSection" style="display: block;">
             <div class="input-container">
@@ -22,7 +22,7 @@
                 <button id="searchButton" onclick="searchCode()">BUSCAR</button>
             </div>
         </div>
-
+ 
         <!-- Sección de resultados (inicialmente oculta) -->
         <div id="resultSection" style="display: none;">
             <div class="result-container">
@@ -30,36 +30,36 @@
                     <label>CODIGO<br>SAP</label>
                     <span id="codeDisplay"></span>
                 </div>
-
+ 
                 <div class="quantity-input">
                     <label for="quantityInput">CANTIDAD</label>
                     <input type="number" id="quantityInput" min="1" value="1">
                 </div>
-
+ 
                 <div class="description-display">
                     <label>DESCRIPCIÓN:</label>
                     <p id="descriptionDisplay"></p>
                 </div>
-
+ 
                 <button id="btnConnect">Conectar Impresora</button>
-                <button id="btnPrintEscPos">Imprimir PDF (TSC)</button>
-
+                <button id="btnPrintEscPos">Imprimir</button>
+ 
                 <!-- <div class="button-container">
                     <button onclick="imprimirPDF()">IMPRIMIR</button>
                 </div>-->
-
+ 
                 <div id="backButtonContainer">
                     <button onclick="goBack()">REGRESAR</button>
                 </div>
             </div>
         </div>
-
+ 
         <p id="errorMessage" class="error-message" role="alert"></p>
         <p id="successMessage" class="success-message" role="status"></p>
     </div>
-
+ 
     <script>
-
+ 
         // Función de búsqueda del código
         function searchCode() {
             const code = document.getElementById('codeInput').value;
@@ -76,11 +76,11 @@
                         document.getElementById('descriptionDisplay').textContent = data.description;
                         document.getElementById('resultSection').style.display = 'block';
                         document.getElementById('errorMessage').textContent = '';
-
+ 
                         // Guardar marca y medida en variables ocultas
                         document.getElementById('codeDisplay').dataset.marca = data.marca;
                         document.getElementById('codeDisplay').dataset.medida = data.medida;
-
+ 
                         // Ocultar el botón de búsqueda y el contenedor de entrada
                         document.getElementById('searchButton').style.display = 'none';
                         document.querySelector('.input-container').style.display = 'none';
@@ -92,37 +92,37 @@
                     document.getElementById('resultSection').style.display = 'none';
                 });
         }
-
+ 
         // Función para regresar a la pantalla de búsqueda
         function goBack() {
             // Ocultar la sección de resultados
             document.getElementById('resultSection').style.display = 'none';
-
+ 
             // Mostrar la sección de búsqueda
             const searchSection = document.getElementById('searchSection');
             searchSection.style.display = 'flex';
             searchSection.style.flexDirection = 'column';
             searchSection.style.alignItems = 'center';
             searchSection.style.justifyContent = 'center';
-
+ 
             // Restaurar cualquier estilo del contenedor principal
             const container = document.getElementById('container');
             container.style.flexDirection = 'column';
             container.style.alignItems = 'center';
             container.style.justifyContent = 'center';
-
+ 
             // Limpiar mensajes y campos
             document.getElementById('codeInput').value = '';
             document.getElementById('errorMessage').textContent = '';
             document.getElementById('successMessage').textContent = '';
-
+ 
             // Mostrar botón de búsqueda
             document.getElementById('searchButton').style.display = 'inline-block';
             document.querySelector('.input-container').style.display = 'flex';
         }
-
+ 
         let printerCharacteristic = null;
-
+ 
         async function connectPrinter() {
             try {
                 console.log("🔍 Buscando impresora...");
@@ -130,23 +130,23 @@
                     acceptAllDevices: true,
                     optionalServices: ["000018f0-0000-1000-8000-00805f9b34fb"]
                 });
-
+ 
                 console.log("📡 Dispositivo seleccionado:", device.name);
                 const server = await device.gatt.connect();
                 console.log("✅ Conectado a:", device.name);
-
+ 
                 const service = await server.getPrimaryService("000018f0-0000-1000-8000-00805f9b34fb");
                 console.log("🔍 Servicio obtenido:", service);
-
+ 
                 const characteristics = await service.getCharacteristics();
                 console.log("📝 Características disponibles:", characteristics.map(c => c.uuid));
-
+ 
                 // Seleccionar la característica de escritura
                 printerCharacteristic = characteristics.find(c => c.properties.write);
                 if (!printerCharacteristic) {
                     throw new Error("No se encontró una característica de escritura.");
                 }
-
+ 
                 console.log("✅ Característica de escritura lista:", printerCharacteristic.uuid);
                 alert("¡Impresora conectada!");
             } catch (error) {
@@ -154,20 +154,20 @@
                 alert("Error al conectar la impresora.");
             }
         }
-
+ 
         async function printTSC() {
             if (!printerCharacteristic || !printerCharacteristic.service.device.gatt.connected) {
                 alert("⚠️ La impresora no está conectada.");
                 return;
             }
-
+ 
             try {
                 const code = document.getElementById('codeDisplay').textContent || "N/A";
                 const marca = document.getElementById('codeDisplay').dataset.marca || "Sin marca";
                 const medida = document.getElementById('codeDisplay').dataset.medida || "Sin medida";
                 let description = document.getElementById('descriptionDisplay').textContent || "Sin descripción";
                 const cantidad = parseInt(document.getElementById('quantityInput').value) || 1;
-
+ 
                 // 🔄 Reemplazar caracteres especiales y evitar errores con comillas dobles
                 const reemplazos = {
                     "ñ": "n", "Ñ": "N",
@@ -176,14 +176,14 @@
                 };
                 description = description.replace(/[ñÑáéíóúÁÉÍÓÚ]/g, c => reemplazos[c] || c);
                 description = description.replace(/"/g, "'"); // Evitar errores con comillas dobles
-
+ 
                 // 🔹 Forzar solo DOS líneas dividiendo el texto
                 function dividirTexto(texto, maxLength) {
                     let palabras = texto.split(" ");
                     let lineas = ["", ""];
-
+ 
                     let lineaIndex = 0;
-
+ 
                     for (let palabra of palabras) {
                         if ((lineas[lineaIndex] + palabra).length > maxLength) {
                             if (lineaIndex === 1) {
@@ -196,12 +196,12 @@
                             lineas[lineaIndex] += (lineas[lineaIndex] ? " " : "") + palabra;
                         }
                     }
-
+ 
                     return lineas.map(l => l.trim());
                 }
-
+ 
                 const lineasTexto = dividirTexto(description, 40); // Max 40 caracteres por línea
-
+ 
                 // 🔹 Construir comandos TSC
                 let commands = [
                     "SIZE 76 mm, 25 mm\r\n",
@@ -209,10 +209,10 @@
                     "DIRECTION 1\r\n",
                     "CLS\r\n"
                 ];
-
+ 
                 for (let i = 0; i < cantidad; i++) {
                     let y = 7; // Posición inicial para la descripción
-
+ 
                     // 📌 Imprimir cada línea en una nueva posición Y
                     for (const linea of lineasTexto) {
                         if (linea) {
@@ -220,17 +220,17 @@
                             y += 20; // Mover hacia abajo para la siguiente línea
                         }
                     }
-
+ 
                     // 📌 Código de barras y demás elementos
-                    commands.push(`BARCODE 4,${y-2},"128",100,0,0,7,2,"${code}"\r\n`);
+                    commands.push(`BARCODE 10,${y-2},"128",100,0,0,6,2,"${code}"\r\n`);
                     commands.push(`TEXT 190,${y + 100},"3",0,1,1,"${code}"\r\n`);
                     commands.push(`TEXT 1,${y + 125},"2",0,1,1,"${medida}"\r\n`);
                     commands.push(`TEXT 440,${y + 125},"2",0,1,1,"${marca}"\r\n`);
                     commands.push("PRINT 1,1\r\n");
                 }
-
+ 
                 console.log("📤 Enviando impresión");
-
+ 
                 // 🔹 Enviar los comandos en partes pequeñas con pausas
                 for (const command of commands) {
                     if (!printerCharacteristic.service.device.gatt.connected) {
@@ -240,16 +240,16 @@
                     await printerCharacteristic.writeValue(new TextEncoder().encode(command));
                     await new Promise(resolve => setTimeout(resolve, 50)); // Pequeña pausa entre envíos
                 }
-
+ 
                 console.log("✅ Impresión enviada correctamente");
                 alert("¡Impresión enviada en TSC!");
-
+ 
             } catch (error) {
                 console.error("❌ Error de impresión:", error);
                 alert("Error al enviar la impresión.");
             }
         }
-        
+       
         document.getElementById("btnConnect").addEventListener("click", connectPrinter);
         document.getElementById("btnPrintEscPos").addEventListener("click", printTSC);
     </script>
